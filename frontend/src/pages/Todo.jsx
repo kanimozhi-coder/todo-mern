@@ -30,6 +30,10 @@ function Todo() {
   };
 
   const handleAddTodo = async () => {
+    if (!title.trim()) {
+      alert("Please enter a todo title");
+      return;
+    }
     const token = localStorage.getItem("token");
     const response = await fetch("http://localhost:5000/api/todos", {
       method: "POST",
@@ -50,6 +54,10 @@ function Todo() {
   };
 
   const handleUpdateTodo = async (todoId) => {
+    if (!editTitle.trim()) {
+      alert("Todo title cannot be empty");
+    }
+
     const token = localStorage.getItem("token");
 
     const response = await fetch(`http://localhost:5000/api/todos/${todoId}`, {
