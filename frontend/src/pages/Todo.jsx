@@ -4,6 +4,20 @@ function Todo() {
   const [todos, setTodos] = useState([]);
   const [title, setTitle] = useState("");
 
+  const handleDeleteTodo = async (todoId) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`http://localhost:5000/api/todos/${todoId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await response.json();
+
+    setTodos((prevTodos) => prevTodos.filter((item) => item._id !== todoId));
+    console.log(data);
+  };
+
   const handleAddTodo = async () => {
     const token = localStorage.getItem("token");
     const response = await fetch("http://localhost:5000/api/todos", {
@@ -70,8 +84,8 @@ function Todo() {
               <input type="checkbox" checked={todo.completed} onChange={() => handleToggleTodo(todo)} />
               {todo.completed ? <span style={{ textDecoration: "line-through" }}>{todo.title}</span> : <span>{todo.title}</span>}
             </li>
-
-            <button>close</button>
+            <button onClick={() => handleDeleteTodo(todo._id)}>Delete</button>
+            {/* <button>close</button> */}
           </div>
         ))}
       </ul>
