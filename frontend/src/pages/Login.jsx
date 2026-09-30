@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,8 +29,7 @@ function Login() {
     }
 
     localStorage.setItem("token", data.token);
-
-    alert("Login successful");
+    navigate("/todos");
 
     console.log(data);
   };
@@ -40,12 +41,12 @@ function Login() {
       <form onSubmit={handleSubmit}>
         <div>
           <label>Email</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
         </div>
 
         <div>
           <label>Password</label>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
         </div>
 
         <button type="submit">Login</button>

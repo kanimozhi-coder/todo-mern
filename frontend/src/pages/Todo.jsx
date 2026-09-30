@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Todo() {
   const [todos, setTodos] = useState([]);
   const [title, setTitle] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [editTitle, setEditTitle] = useState("");
 
   const handleDeleteTodo = async (todoId) => {
     const token = localStorage.getItem("token");
@@ -16,6 +19,12 @@ function Todo() {
 
     setTodos((prevTodos) => prevTodos.filter((item) => item._id !== todoId));
     console.log(data);
+  };
+
+  const navigate = useNavigate();
+  const handleLogout = async () => {
+    localStorage.removeItem("token");
+    navigate("/login");
   };
 
   const handleAddTodo = async () => {
@@ -36,6 +45,35 @@ function Todo() {
 
     setTodos((prevTodos) => [...prevTodos, data.todo]);
     setTitle("");
+  };
+
+  const handleUpdateTodo = async (todoId) => {
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(`http://localhost:5000/api/todos/${todoId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        title: editTitle,
+      }),
+    });
+
+    const data = await response.json();
+
+    console.log(data);
+
+    if (!response.ok) {
+      alert(data.message);
+      return;
+    }
+
+    setTodos((prevTodos) => prevTodos.map((item) => (item._id === data.todo._id ? data.todo : item)));
+
+    setEditingId(null);
+    setEditTitle("");
   };
 
   const handleToggleTodo = async (todo) => {
@@ -59,6 +97,13 @@ function Todo() {
   };
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
     const fetchTodos = async () => {
       const token = localStorage.getItem("token");
 
@@ -72,20 +117,49 @@ function Todo() {
       setTodos(data.todos);
     };
     fetchTodos();
-  }, []);
+  }, [navigate]);
   return (
     <div>
       <h1>My Todos</h1>
 
+      <button onClick={handleLogout}>Logout</button>
+
       <ul style={{ listStyleType: "none" }}>
         {todos.map((todo, index) => (
-          <div key={index} style={{ display: "flex", justifyContent: "center", gap: "10px", marginBottom: "10px" }}>
+          <div
+            key={index}
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: "10px",
+              marginBottom: "10px",
+            }}
+          >
             <li key={todo._id}>
               <input type="checkbox" checked={todo.completed} onChange={() => handleToggleTodo(todo)} />
-              {todo.completed ? <span style={{ textDecoration: "line-through" }}>{todo.title}</span> : <span>{todo.title}</span>}
+
+              {editingId === todo._id ? (
+                <>
+                  <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+                  <button onClick={() => handleUpdateTodo(todo._id)}>Save</button>
+                </>
+              ) : todo.completed ? (
+                <span style={{ textDecoration: "line-through" }}>{todo.title}</span>
+              ) : (
+                <span>{todo.title}</span>
+              )}
             </li>
+
+            <button
+              onClick={() => {
+                setEditingId(todo._id);
+                setEditTitle(todo.title);
+              }}
+            >
+              Edit
+            </button>
+
             <button onClick={() => handleDeleteTodo(todo._id)}>Delete</button>
-            {/* <button>close</button> */}
           </div>
         ))}
       </ul>
