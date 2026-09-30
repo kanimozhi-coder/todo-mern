@@ -8,6 +8,7 @@ function Todo() {
   const [editTitle, setEditTitle] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [filter, setFilter] = useState("all");
 
   const handleDeleteTodo = async (todoId) => {
     const token = localStorage.getItem("token");
@@ -106,6 +107,16 @@ function Todo() {
     console.log(data);
   };
 
+  const filteredTodos = todos.filter((todo) => {
+    if (filter === "active") {
+      return !todo.completed;
+    }
+    if (filter === "completed") {
+      return todo.completed;
+    }
+    return true;
+  });
+
   useEffect(() => {
     const token = localStorage.getItem("token");
 
@@ -140,58 +151,150 @@ function Todo() {
     fetchTodos();
   }, [navigate]);
   return (
-    <div>
-      <h1>My Todos</h1>
+    <div
+      style={{
+        maxWidth: "600px",
+        margin: "40px auto",
+        padding: "20px",
+        fontFamily: "Arial, sans-serif",
+      }}
+    >
+      <h1
+        style={{
+          textAlign: "center",
+          marginBottom: "25px",
+        }}
+      >
+        My Todos
+      </h1>
 
-      <button onClick={handleLogout}>Logout</button>
+      <button
+        onClick={handleLogout}
+        style={{
+          padding: "8px 14px",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+          marginBottom: "20px",
+        }}
+      >
+        Logout
+      </button>
       {loading ? (
         <p>Loading...</p>
       ) : error ? (
         <p>{error}</p>
       ) : (
-        <ul style={{ listStyleType: "none" }}>
-          {todos.map((todo, index) => (
-            <div
-              key={index}
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                gap: "10px",
-                marginBottom: "10px",
-              }}
-            >
-              <li key={todo._id}>
-                <input type="checkbox" checked={todo.completed} onChange={() => handleToggleTodo(todo)} />
+        <>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: "10px",
+              margin: "25px 0",
+            }}
+          >
+            <button onClick={() => setFilter("all")} disabled={filter === "all"}>
+              All
+            </button>
 
-                {editingId === todo._id ? (
-                  <>
-                    <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
-                    <button onClick={() => handleUpdateTodo(todo._id)}>Save</button>
-                  </>
-                ) : todo.completed ? (
-                  <span style={{ textDecoration: "line-through" }}>{todo.title}</span>
-                ) : (
-                  <span>{todo.title}</span>
-                )}
-              </li>
+            <button onClick={() => setFilter("active")} disabled={filter === "active"}>
+              Active
+            </button>
 
-              <button
-                onClick={() => {
-                  setEditingId(todo._id);
-                  setEditTitle(todo.title);
-                }}
-              >
-                Edit
-              </button>
+            <button onClick={() => setFilter("completed")} disabled={filter === "completed"}>
+              Completed
+            </button>
+          </div>
+          {filteredTodos.length === 0 ? (
+            <p style={{ textAlign: "center" }}>No todos found.</p>
+          ) : (
+            <ul style={{ listStyleType: "none" }}>
+              {filteredTodos.map((todo, index) => (
+                <div
+                  key={index}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    marginBottom: "10px",
+                    padding: "10px",
+                    border: "1px solid #ddd",
+                    borderRadius: "5px",
+                  }}
+                >
+                  <li key={todo._id}>
+                    <input type="checkbox" checked={todo.completed} onChange={() => handleToggleTodo(todo)} />
 
-              <button onClick={() => handleDeleteTodo(todo._id)}>Delete</button>
-            </div>
-          ))}
-        </ul>
+                    {editingId === todo._id ? (
+                      <>
+                        <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+                        <button onClick={() => handleUpdateTodo(todo._id)}>Save</button>
+                      </>
+                    ) : todo.completed ? (
+                      <span style={{ textDecoration: "line-through" }}>{todo.title}</span>
+                    ) : (
+                      <span>{todo.title}</span>
+                    )}
+                  </li>
+
+                  <button
+                    onClick={() => {
+                      setEditingId(todo._id);
+                      setEditTitle(todo.title);
+                    }}
+                    style={{
+                      padding: "6px 10px",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    onClick={() => handleDeleteTodo(todo._id)}
+                    style={{
+                      padding: "6px 10px",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              ))}
+            </ul>
+          )}
+        </>
       )}
-      <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Enter a todo" />
+      <input
+        type="text"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Enter a todo..."
+        style={{
+          padding: "10px",
+          width: "70%",
+          marginRight: "10px",
+          border: "1px solid #ccc",
+          borderRadius: "5px",
+        }}
+      />
 
-      <button onClick={handleAddTodo}>Add Todo</button>
+      <button
+        onClick={handleAddTodo}
+        style={{
+          padding: "10px 16px",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+        }}
+      >
+        Add Todo
+      </button>
     </div>
   );
 }
