@@ -6,6 +6,8 @@ function Todo() {
   const [title, setTitle] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const handleDeleteTodo = async (todoId) => {
     const token = localStorage.getItem("token");
@@ -105,16 +107,27 @@ function Todo() {
     }
 
     const fetchTodos = async () => {
-      const token = localStorage.getItem("token");
+      try {
+        const response = await fetch("http://localhost:5000/api/todos", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      const response = await fetch("http://localhost:5000/api/todos", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
+        const data = await response.json();
 
-      setTodos(data.todos);
+        if (!response.ok) {
+          setError(data.message);
+          setLoading(false);
+          return;
+        }
+
+        setTodos(data.todos);
+        setLoading(false);
+      } catch (error) {
+        setError("Failed to load todos");
+        setLoading(false);
+      }
     };
     fetchTodos();
   }, [navigate]);
@@ -123,46 +136,51 @@ function Todo() {
       <h1>My Todos</h1>
 
       <button onClick={handleLogout}>Logout</button>
-
-      <ul style={{ listStyleType: "none" }}>
-        {todos.map((todo, index) => (
-          <div
-            key={index}
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              gap: "10px",
-              marginBottom: "10px",
-            }}
-          >
-            <li key={todo._id}>
-              <input type="checkbox" checked={todo.completed} onChange={() => handleToggleTodo(todo)} />
-
-              {editingId === todo._id ? (
-                <>
-                  <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
-                  <button onClick={() => handleUpdateTodo(todo._id)}>Save</button>
-                </>
-              ) : todo.completed ? (
-                <span style={{ textDecoration: "line-through" }}>{todo.title}</span>
-              ) : (
-                <span>{todo.title}</span>
-              )}
-            </li>
-
-            <button
-              onClick={() => {
-                setEditingId(todo._id);
-                setEditTitle(todo.title);
+      {loading ? (
+        <p>Loading...</p>
+      ) : error ? (
+        <p>{error}</p>
+      ) : (
+        <ul style={{ listStyleType: "none" }}>
+          {todos.map((todo, index) => (
+            <div
+              key={index}
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: "10px",
+                marginBottom: "10px",
               }}
             >
-              Edit
-            </button>
+              <li key={todo._id}>
+                <input type="checkbox" checked={todo.completed} onChange={() => handleToggleTodo(todo)} />
 
-            <button onClick={() => handleDeleteTodo(todo._id)}>Delete</button>
-          </div>
-        ))}
-      </ul>
+                {editingId === todo._id ? (
+                  <>
+                    <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+                    <button onClick={() => handleUpdateTodo(todo._id)}>Save</button>
+                  </>
+                ) : todo.completed ? (
+                  <span style={{ textDecoration: "line-through" }}>{todo.title}</span>
+                ) : (
+                  <span>{todo.title}</span>
+                )}
+              </li>
+
+              <button
+                onClick={() => {
+                  setEditingId(todo._id);
+                  setEditTitle(todo.title);
+                }}
+              >
+                Edit
+              </button>
+
+              <button onClick={() => handleDeleteTodo(todo._id)}>Delete</button>
+            </div>
+          ))}
+        </ul>
+      )}
       <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Enter a todo" />
 
       <button onClick={handleAddTodo}>Add Todo</button>
