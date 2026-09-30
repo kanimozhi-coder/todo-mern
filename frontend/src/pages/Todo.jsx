@@ -175,7 +175,8 @@ function Todo() {
           border: "none",
           borderRadius: "5px",
           cursor: "pointer",
-          marginBottom: "20px",
+          marginBottom: "10px",
+          marginTop: "10px",
         }}
       >
         Logout
@@ -291,6 +292,7 @@ function Todo() {
           border: "none",
           borderRadius: "5px",
           cursor: "pointer",
+          marginTop: "20px",
         }}
       >
         Add Todo
